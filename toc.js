@@ -6,6 +6,7 @@ var REGEX_HEADER = /^ *(#+)(.+) *$/;
 
 //set markdown file headers with number and add toc at the beginning
 function toc(markdown,rootLevel=0) {
+    var filename = markdown.substring(0,markdown.lastIndexOf('\\.'));
     var data = fs.readFileSync(markdown).toString();
     var lines = data.split(SPLIT_LINE);
     var TOC = [], LEVEL_INDEX = [];
@@ -29,8 +30,8 @@ function toc(markdown,rootLevel=0) {
             while (level -- >0){
                 link.push('    '); //use 4 spaces to represent one level
             }
-            link.push('*['+number+' '+text+']');
-            link.push('('+markdown+'#'+text.replace(/ +/g,'-')+')');
+            link.push('* ['+number+' '+text+']');
+            link.push('('+filename+'#'+text.replace(/ +/g,'-')+')');
             TOC.push(link.join(''));
         }
     });
