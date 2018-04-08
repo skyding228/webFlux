@@ -5,8 +5,8 @@ var SPLIT_LINE = '\r\n';
 var REGEX_HEADER = /^ *(#+)(.+) *$/;
 
 //set markdown file headers with number and add toc at the beginning
-function toc(markdown,rootLevel=0) {
-    var filename = markdown.substring(0,markdown.lastIndexOf('\\.'));
+function toc(markdown,rootLevel=0,maxDepth=10) {
+    var filename = markdown.substring(0,markdown.lastIndexOf('.'));
     var data = fs.readFileSync(markdown).toString();
     var lines = data.split(SPLIT_LINE);
     var TOC = [], LEVEL_INDEX = [];
@@ -15,6 +15,9 @@ function toc(markdown,rootLevel=0) {
         var header = REGEX_HEADER.exec(line);
         if (header) {
             var level = header[1].length - 1; //get string which only contains #
+            if(level + 1 > maxDepth){
+                return;
+            }
             var text = header[2].trim();
             if (!LEVEL_INDEX[level]) {
                 LEVEL_INDEX[level] = 1;
@@ -31,10 +34,21 @@ function toc(markdown,rootLevel=0) {
                 link.push('    '); //use 4 spaces to represent one level
             }
             link.push('* ['+number+' '+text+']');
-            link.push('('+filename+'#'+text.replace(/ +/g,'-')+')');
+            link.push('('+filename+'#'+text2anchor(text)+')');
             TOC.push(link.join(''));
         }
     });
     return TOC;
 }
-console.log(toc('WebFlux.md').join(SPLIT_LINE));
+
+/**
+ * convert text to anchor
+ * 1. use - to replace spaces
+ * 2. use lowercase
+ * 3. omit all not word character
+ * @param text
+ */
+function text2anchor(text){
+    return text.replace(/ +/g,'-').replace(/[/\\?？@：:\\(\\)\\]+/g,'').toLowerCase();
+}
+console.log(toc('WebFlux.md',0,3).join(SPLIT_LINE));
