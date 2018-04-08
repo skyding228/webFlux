@@ -1,4 +1,4 @@
-# WebClient
+# 2 WebClient
 spring-webflux模块包括一个反应式，非阻塞客户端，用于HTTP请求，具有函数式的API客户端和反应流支持。 WebClient依赖较低级别的HTTP客户端库来执行请求，并且该支持是可插拔的。
 
 WebClient使用与WebFlux服务器应用程序相同的编解码器，并与functional web framework共享一个通用基本包，一些通用API和基础架构。 该API公开了Reactor Flux和Mono类型，也参见了Reactive Libraries。 默认情况下，它使用Reactor Netty作为HTTP客户端库，但其他库可以通过自定义ClientHttpConnector使用。
@@ -14,7 +14,7 @@ WebClient 与 RestTemplate 比较：
 
 对于大多数并发场景，例如 一系列可能相互依赖的HTTP调用，或者从服务器端进行远程调用，都倾向于使用WebClient。
 
-## Retrieve
+## 2.1 Retrieve
 
 retrieve()方法可以很简单的获取一个响应体并解析它：
 ```java
@@ -44,7 +44,7 @@ retrieve()方法可以很简单的获取一个响应体并解析它：
             .bodyToMono(Person.class);
 ```
 
-## Exchange
+## 2.2 Exchange
 exchange()提供更多的控制，下面的代码等同于retrive(),但是可以访问ClientResponse:
 ```java
     Mono<Person> result = client.get()
@@ -65,7 +65,7 @@ exchange()提供更多的控制，下面的代码等同于retrive(),但是可以
 
 *使用exchange()时，您必须始终使用ClientResponse的body或toEntity方法来确保资源已释放并避免HTTP连接池存在潜在问题。 如果没有响应内容，您可以使用bodyToMono（Void.class）。 但请记住，如果响应确实包含内容，则连接将被关闭，并且不会放回池中。*
 
-## Request body
+## 2.3 Request body
 把对象编码成请求体：
 ```java
     Mono<Person> personMono = ... ;
@@ -102,7 +102,7 @@ exchange()提供更多的控制，下面的代码等同于retrive(),但是可以
             .bodyToMono(Void.class);
 ```
 
-### 表单数据
+### 2.3.1 表单数据
 要发送表单数据，请提供一个MultiValueMap <String，String>作为正文。 请注意，FormHttpMessageWriter将内容自动设置为“application / x-www-form-urlencoded”：
 ```java
     MultiValueMap<String, String> formData = ... ;
@@ -124,7 +124,7 @@ exchange()提供更多的控制，下面的代码等同于retrive(),但是可以
             .retrieve()
             .bodyToMono(Void.class);
 ```
-### Multipart data
+### 2.3.2 Multipart data
 要发送Multipart数据，请提供一个MultiValueMap <String，？>，其中的值可以是表示部分主体的Object，也可以是表示部分主体和头部的HttpEntity。 MultipartBodyBuilder可以用来构建：
 ```java
     MultipartBodyBuilder builder = new MultipartBodyBuilder();
@@ -153,7 +153,7 @@ exchange()提供更多的控制，下面的代码等同于retrive(),但是可以
             .bodyToMono(Void.class);
 ```
 
-## Builder options
+## 2.4 Builder options
 创建WebClient的一个简单方法是通过静态工厂方法create（）和create（String）为所有请求提供基本URL。 您还可以使用WebClient.builder（）访问更多选项。
 
 定制底层HTTP客户端：
@@ -190,7 +190,7 @@ WebClient modifiedClient = client.mutate()
             // user builder methods...
             .build();
 ```
-## Filters
+## 2.5 Filters
 WebClient支持拦截请求过滤：
 ```java
     WebClient client = WebClient.builder()
@@ -217,6 +217,6 @@ ExchangeFilterFunctions为基本认证提供了一个过滤器：
             .build();
 ```
 
-## Testing
+## 2.6 Testing
 要测试使用WebClient的代码，可以使用模拟Web服务器，如OkHttp MockWebServer。 要查看使用示例，请检查Spring Framework测试中的WebClientIntegrationTests或OkHttp存储库中的静态服务器示例。
 

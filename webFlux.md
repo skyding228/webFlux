@@ -1,19 +1,19 @@
 [TOC]
-# Spring WebFlux
+# 1 Spring WebFlux
 
-## 简介
+## 1.1 简介
 
 之前的spring 框架体系中的Web MVC框架的主要目的是构建关于Servlet和Servlet 容器的。在反应式技术栈中的web框架，Spring Flux 是在5.0以后加入的spring体系中的。它是完全无阻塞、支持背压框架Reactive Streams, 运行在Netty/Undertow 和 Servlet 3.1+的容器服务器上。
      
 spring-webmvc和spring-webflux在spring 框架中都是都是存在的。每个都是可选的。应用可以选择其中的一个使用，或者两个都用，比如可以使用反应式的webclient的MVC controllers 。
 
-### 为什么作为新的web 框架？
+### 1.1.1 为什么作为新的web 框架？
 
 部分原因是需要一个非阻塞的可以使用较少的线程处理高并发，需要较少的硬件资源就可以进行扩展的框架。Servlet 3.1 已经针对非阻塞I/O提供了API。但是，使用这个会导致Servlet API的其余部分是同步的（比如Filter、Servlet）或者阻塞的（比如getParameter，getPart等 ）。添加新的公共API的动机就是让非阻塞横跨整个运行时。这一点很重要，因为诸如Netty这样的服务器已经在异步，非阻塞空间中很好地建立起来了。
 
 另一部分原因是函数式编程。就像java 5添加的注解功能让我们可以通过注解实现REST controller 或者 测试用例一样，java 8添加的lambda表达式为函数式API创造了机会。对于非阻塞应用程序和延续式API来说，这是一个福音，正如CompletableFuture和ReactiveX所推广的那样，它允许声明式组合异步逻辑。 在编程模型层面，Java 8使Spring WebFlux能够在带注解的控制器的同时提供功能性的Web端点。
 
-### 反应式：是什么？为什么？
+### 1.1.2 反应式：是什么？为什么？
 我们谈到非阻塞和函数式编程，为什么要反应式的，这是什么意思呢？
 
 术语"reactive"(响应式)是围绕对变化做出反应而建立的编程模型。比如网络组件对I/O事件做出反应，UI控制器对鼠标事件做出反应等。从这个意义上说，非阻塞是被动的，因为不是被阻塞，而是当操作完成或数据可用时，我们现在处于对通知作出反应的模式。
@@ -25,14 +25,14 @@ Reactive Streams是一个小规格，也在Java 9中采用，它定义了背压�
 *常见问题：如果发布者不能降低速度怎么办？*
 反应流的目的只是建立机制和边界。 如果发布商不能放慢速度，那么它必须决定是否缓冲，丢弃或失败。
 
-### 反应式API
+### 1.1.3 反应式API
 反应流在互操作性方面发挥着重要作用。 它对依赖包和基础设施组件很有用，但作为应用程序API的用处不大，因为它太底层了。应用程序需要更高级别和更丰富的功能API来组成异步逻辑 -，类似于Java 8 Stream API，但它不仅仅适用于集合。 这就是反应式库发挥的作用。
 
 Reactor是Spring WebFlux的反应性库。 它提供了Mono和Flux API类型，通过与ReactiveX的丰富操作符来处理0..1和0..N的数据序列。 Reactor是一个Reactive Streams库，因此它的所有操作员都支持非阻塞背压。 Reactor强烈关注服务器端Java。 它是与Spring密切合作开发的。
 
 WebFlux需要Reactor作为核心依赖项，但它可以通过Reactive Streams与其他反应式库进行互操作。作为一般规则，WebFlux API接受一个普通的Publisher作为输入，在内部将它调整为Reactor类型，使用它们，然后返回Flux或Mono作为输出。因此，您可以通过任何发布作为输入，并且可以对输出进行操作，但您需要调整输出以供其他反应式库使用。只要可行，例如带注解的控制器，WebFlux完全适应RxJava或其他反应性库的使用。 有关更多详细信息，请参阅Reactive Libraries。
 
-### 编程模型
+### 1.1.4 编程模型
 Spring-Web模块包含Spring WebFlux的基础，这些基础包括HTTP抽象，受支持服务器的Reactive Streams适配器，编解码器以及可与Servlet API相媲美但具有非阻塞协议的核心WebHandler API。
 
 在此基础上，Spring WebFlux提供了两种编程模型供选择：
@@ -41,7 +41,7 @@ Spring-Web模块包含Spring WebFlux的基础，这些基础包括HTTP抽象，�
 - Functional Endpoints
   基于lambda表达式，轻量级，函数式编程模型。把它想象成一个小型库或应用程序可以用来路由和处理请求的一组实用程序。 与Annotated Controllers的最大区别在于前者应用程序负责从头到尾的请求处理，后者通过注解声明意图并被回调。
 
-### 选择一个web框架
+### 1.1.5 选择一个web框架
 你应该使用Spring MVC还是WebFlux？ 我们来介绍一些不同的观点。
 
 如果你有个spring MVC的应用程序工作的很好，没必要修改。命令式编程是最容易编写、理解和debug的代码。由于历来都是阻塞是编程，所以依赖包有非常多的选择。
@@ -60,7 +60,7 @@ Spring-Web模块包含Spring WebFlux的基础，这些基础包括HTTP抽象，�
 
 如果您不确定有哪些好处，请先了解非阻塞I / O如何工作（例如Node.js，单线程与并发不矛盾）及其影响。它的标签是“以较少硬件进行伸缩”，但不能保证这种效果，并非没有一些网络I / O可能很慢或不可预测。 这个Netflix博客文章是一个很好的资源。
 
-### 选择一个服务器
+### 1.1.6 选择一个服务器
 Netty，Undertow，Tomcat，Jetty和Servlet 3.1+容器支持Spring WebFlux。 每个服务器都适用于通用的Reactive Streams API。 Spring WebFlux编程模型建立在该通用API上。
 
 *常见问题：Tomcat和Jetty 怎么在两种方式下都能用？*
@@ -70,12 +70,12 @@ Spring Boot 2在WebFlux中默认使用Netty，因为Netty在异步，非阻塞�
 
 Spring Boot中的默认服务器选择主要关于开箱即用体验。 应用程序仍然可以选择任何其他受支持的服务器，这些服务器还针对性能进行了高度优化，完全无阻塞，并适用于反应式背压。 在Spring Boot中，切换很容易。
 
-### 性能与可伸缩
+### 1.1.7 性能与可伸缩
 性能有很多特点和意义。 反应式和非阻塞通常不会使应用程序运行得更快。 在某些情况下可以，例如，使用WebClient并行执行远程调用。 总的来说，它需要更多的工作来完成非阻塞方式，并且可以稍微增加所需的处理时间。
 
 反应式和非阻塞的关键预期好处是能够使用少量固定数量的线程和较少的内存进行扩展。 这使得应用程序在负载下更具弹性，因为它们以更可预测的方式进行扩展。 为了观察这些好处，您需要有一些延迟，包括缓慢和不可预知的网络I / O。 这就是反应式开始显示其优势的地方，差异可能非常大。
 
-## Reactive Spring web
+## 1.2 Reactive Spring web
 spring-web模块提供底层基础设施和HTTP抽象 - 客户端和服务器，以构建反应式Web应用程序。 所有的公共API都是以Reactor作为后台实现来构建的。
 
 服务器支持分为两层：
@@ -84,7 +84,7 @@ spring-web模块提供底层基础设施和HTTP抽象 - 客户端和服务器，
 - WebHandler API 
   稍高的级别，但仍然是通用服务器Web API，具有过滤器链式处理。
 
-### HttpHandler
+### 1.2.1 HttpHandler
 每个HTTP服务器都有一些用于HTTP请求处理的API。 HttpHandler是一种处理请求和响应的简单协议。 它是故意进行了最小化。 其主要目的是为不同服务器上的HTTP请求处理提供基于Reactive Streams的通用API。
 
 spring-web模块包含的对每种支持的服务器的适配器。下面的这张表显示了使用了哪些服务器API和ReactiveStreams的支持来自哪里:
@@ -160,7 +160,7 @@ server.start();
 
 *要将WAR部署为Servlet 3.1+容器，请使用ServletHttpHandlerAdapter包装HttpHandler并将其注册为Servlet。 这可以通过使用AbstractReactiveWebInitializer自动完成。*
 
-### WebHandler API
+### 1.2.2 WebHandler API
 
 HttpHandler是在不同的HTTP服务器上运行的最底层的协议。 在这个基础之上，WebHandler API提供了一个稍微高一点的，但仍然是通用的一组组件，这些组件构成了WebExceptionHandler，WebFilter和WebHandler的链。
 
@@ -172,7 +172,7 @@ ApplicationContext context = ...
 HttpHandler handler = WebHttpHandlerBuilder.applicationContext(context).build()
 ```
 
-#### 特殊的bean类型
+#### 1.2.2.1 特殊的bean类型
 下表列出了一些WebHttpHandlerBuilder可以从容器中获取的组件：
 
 |Bean name |   Bean type  |  Count   | Description|
@@ -185,7 +185,7 @@ HttpHandler handler = WebHttpHandlerBuilder.applicationContext(context).build()
 |"localeContextResolver"   | LocaleContextResolver  |  0..1 |   The resolver for LocaleContextexposed through a method on ServerWebExchange.AcceptHeaderLocaleContextResolverby default.|
 
 
-#### 表单数据
+#### 1.2.2.2 表单数据
 
 ServerWebExchange 暴露了下面的方法，可以获取表单数据
 
@@ -196,7 +196,7 @@ Mono<MultiValueMap<String, String>> getFormData();
 
 DefaultServerWebExchange使用配置的HttpMessageReader将表单数据（“application / x-www-form-urlencoded”）解析为MultiValueMap。 默认情况下，FormHttpMessageReader被配置为通过ServerCodecConfigurer bean使用（请参阅Web Handler API）。
 
-#### 文件上传
+#### 1.2.2.3 文件上传
 
 ServerWebExchange 暴露了下面的方法可以获取上传文件的数据：
 ```java
@@ -207,7 +207,7 @@ DefaultServerWebExchange使用配置的HttpMessageReader <MultiValueMap <String�
 
 要以流方式解析多部分数据，请使用从HttpMessageReader <Part>返回的Flux <Part>。 例如，在注解控制器中，使用@RequestPart意味着按名称对各个部分进行类似Map的访问，因此需要完整地解析多部分数据。 相比之下，@RequestBody可用于将内容解码到Flux <Part>，而不会收集到MultiValueMap。
 
-### HTTP消息编解码
+### 1.2.3 HTTP消息编解码
 
 spring-web模块定义HttpMessageReader和HttpMessageWriter协议，通过Rective Streams Publisher's对HTTP请求和响应的主体进行编码和解码。 这些行为在客户端使用，例如， 在WebClient中，在服务器端，例如 在注解的控制器和功能端点中。
 
@@ -217,7 +217,7 @@ Spring-core模块包含byte []，ByteBuffer，DataBuffer，Resource和String的�
 
 要配置或自定义readers 和writers ，通常会使用ClientCodecConfigurer或ServerCodecConfigurer。
 
-#### Jackson
+#### 1.2.3.1 Jackson
 decoder依靠Jackson的非阻塞字节数组解析器将字节块流解析为TokenBuffer流，然后可以将其转换为Jackson的ObjectMapper对象。 目前支持JSON和Smile（二进制JSON）数据格式。
 
 编码Publisher<?> 的流程如下：
@@ -229,7 +229,7 @@ decoder依靠Jackson的非阻塞字节数组解析器将字节块流解析为Tok
 
 请注意，Jackson JSON编码器和解码器都明确不渲染String类型的元素。 相反，String被视为低级内容（即序列化的JSON），并由CharSequenceEncoder按原样呈现。 如果你想把一个Flux <String>渲染成JSON数组，你必须使用Flux＃collectToList（）并提供一个Mono <List <String >>。
 
-## DispatcherHandler
+## 1.3 DispatcherHandler
 像Spring MVC一样，Spring WebFlux围绕前端控制器模式进行设计，中央WebHandler（DispatcherHandler）为请求处理提供共享算法，而实际工作由可配置的委托组件执行。 该模型非常灵活，支持多种工作流程。
 
 DispatcherHandler通过Spring配置发现它需要的委托组件。 它也被设计成一个Spring bean，并实现ApplicationContextAware来访问它所运行的上下文。如果DispatcherHandler是用bean名称“webHandler”声明的，它会被WebHttpHandlerBuilder发现，它将会像WebHandler API描述的那样与请求处理链放在一起 。
@@ -247,7 +247,7 @@ HttpHandler handler = WebHttpHandlerBuilder.applicationContext(context);
 ```
 至此HttpHandler已经准备好供服务器适配器使用。
 
-### 特殊bean类型
+### 1.3.1 特殊bean类型
 
 DispatcherHandler委托特殊的bean来处理请求并呈现相应的响应。 “特殊bean”是指实现WebFlux框架协议的Spring管理的对象实例。 这些通常是内置的，但您可以自定义其属性，然后进行扩展或替换。
 
@@ -259,17 +259,17 @@ DispatcherHandler委托特殊的bean来处理请求并呈现相应的响应。 �
 |HandlerAdapter|帮助DispatcherHandler调用映射到请求的处理器，而不管实际如何调用处理程序。 例如调用一个带注解的控制器需要解析注解。 HandlerAdapter的主要目的是屏蔽DispatcherHandler的细节。|
 |HandlerResultHandler|    处理 处理器的执行结果并且进行响应|
 
-### WebFlux配置
+### 1.3.2 WebFlux配置
 应用程序可以声明处理请求所需的Web Handler API 和DispatcherHandler下列出的基础架构Bean。 但是在大多数情况下，WebFlux配置是最好的起点。 它声明所需的bean并提供更高级别的配置回调API来定制它。
 *Spring Boot依靠WebFlux配置来配置Spring WebFlux，并且还提供了许多额外的方便选项。*
 
-### Processing
+### 1.3.3 Processing
 DispatcherHandler 处理请求的流程如下：
 - 要求每个HandlerMapping 找到一个匹配的handler，并且使用第一个匹配的
 - 如果能找到一个handler，就通过相应的HandlerAdapter进行执行并且返回HandlerResult
 - 返回的HandlerResult被发送给对应的HandlerResultHandler去完成处理过程，直接写到一个用视图选择的响应里。
 
-### Result Handling
+### 1.3.4 Result Handling
 当DispatcherHandler需要处理来自handler的返回值时，它会找到支持它并调用它的HandlerResultHandler。 下面列出了它们的默认顺序（全部在WebFlux配置中声明）：
 - ResponseEntityResultHandler 
   处理通常从注解控制器返回的ResponseEntity返回值。 由于按类型安全地匹配返回值，因此该顺序设置为0。
@@ -280,10 +280,10 @@ DispatcherHandler 处理请求的流程如下：
 - ViewResolutionResultHandler 
 为HTML模板渲染执行视图匹配算法。 由于它支持多种特定类型，例如，String, Map, Rendering等，所以优先级设置最低Ordered.LOWEST_PRECEDENCE，但也会将其他对象视为模型属性。
 
-###  View Resolution
+### 1.3.5 View Resolution
 View Resolution能够使用HTML模板和数据呈现给浏览器，而无需将您绑定到特定的视图技术。 在Spring WebFlux中，通过专用的HandlerResultHandler来支持视图解析，HandlerResultHandler使用ViewResolver将表示逻辑视图名称的String映射到View实例。 该视图然后用于呈现响应。
 
-#### Handling
+#### 1.3.5.1 Handling
 传递给ViewResolutionResultHandler的HandlerResult包含来自处理程序的返回值以及包含在请求处理过程中添加的属性的模型。返回值将被处理成下面的一种：
 
 - String, CharSequence
@@ -301,15 +301,15 @@ View Resolution能够使用HTML模板和数据呈现给浏览器，而无需将�
 
 配置一个view resolution 就是添加一个ViewResolutionResultHandler类型的bean到spring 配置当中那么简单。WebFlux Config 为配置view resolution提供了一个专门的配置API。
 
-#### Redirecting
+#### 1.3.5.2 Redirecting
 视图名称关键字`redirect:`前缀允许执行重定向。 UrlBasedViewResolver（和子类）将此识别为需要重定向的指令。 视图名称的其余部分是重定向URL。
 使用控制器返回RedirectView或Rendering.redirectTo（“abc”）.build（）（）一样的效果，但现在控制器内部可以简单地按逻辑视图名称操作。 视图名称（如redirect：/ some / resource）是当前应用程序内部，而视图名称redirect：http：//example.com/arbitrary/path将重定向到绝对URL。
 
-#### 内容协商
+#### 1.3.5.3 内容协商
 ViewResolutionResultHandler 支持内容协商。它会比较请求和选择的View支持的媒体类型，会使用第一个支持的请求media类型。
 为了支持JSON和XML等媒体类型，Spring WebFlux提供了HttpMessageWriterView，它是一个通过HttpMessageWriter呈现的特殊视图。 通常您可以通过WebFlux配置将这些配置为默认视图。 如果默认视图与请求的媒体类型匹配，则始终选择并使用它们。
 
-## 注解Controller
+## 1.4 注解Controller
 Spring WebFlux提供了一种基于注解的编程模型，其中@Controller和@RestController组件使用注解来表示请求映射，请求输入，异常处理等。 带注解的控制器具有灵活的方法签名，不必扩展基类，也不需要实现特定的接口。
 ```java
 @RestController
@@ -325,7 +325,7 @@ public class HelloController {
 
 在上面的示例中，这个方法返回的字符串将会被写入响应体中。
 
-### @Controller
+### 1.4.1 @Controller
 你可以用一个标准的Spring bean作为controller。
 @Controller允许自动检测，与Spring其他支持一致，用于检测类路径中的@Component类，并为它们自动注册bean定义，让它作为Web组件。
 
@@ -341,7 +341,7 @@ public class WebConfig {
 
 @RestController是一个组合注解，它自己被@Controller和@ResponseBody进行了标注，使用它标注的类的每个方法都会继承@ResponseBody注解。所以直接把返回值写入响应体，不在进行视图解析渲染。
 
-### Request Mapping
+### 1.4.2 Request Mapping
 @RequestMapping注解是用来把请求映射到controller方法上。它有很多属性用来匹配URL、HTTP请求方法，请求参数、请求头和媒体类型。可以用在Class上表示共用的前置路径，方法级上就是详细 路径。
 
 还有@RequestMapping的HTTP方法特定的快捷方式：
@@ -370,7 +370,7 @@ class PersonController {
     }
 }
 ```
-#### URI匹配规则
+#### 1.4.2.1 URI匹配规则
 你可以使用glob模式和通配符类映射请求：
 - `?` 匹配单个字符
 - `*` 在单个目录上匹配0个或多个字符
@@ -416,14 +416,14 @@ URI匹配模式也可以包含占位符`${...}`，PropertyPlaceHolderConfigurer�
 
 Spring WebFlux不支持后缀模式匹配 - 不同于Spring MVC，像/ person这样的映射也与/person.*匹配。 对于基于URL的内容协商，如果需要，我们建议使用查询参数，该参数更简单，更明确，并且不易受基于URL路径的攻击的影响。
 
-#### 模式比较
+#### 1.4.2.2 模式比较
 如果有多个模式匹配一个URL，必须找出一个最佳匹配。PathPattern.SPECIFICITY_COMPARATOR 查找最佳匹配。
 
 对于每种模式，根据URI变量和通配符的数量来计算得分。URI变量得分低于通配符的， 总分较低的模式获胜。 如果两种模式具有相同的分数，则选择较长的模式。
 
 全部匹配的模式，例如`**`,`{*varName}`,不进行计算得分，并且始终放在最后。如果两个全部匹配模式都匹配，那么选择较长的模式。
 
-#### Consumable Media Types
+#### 1.4.2.3 Consumable Media Types
 你可以通过`Content-Type`限定请求：
 ```java
 @PostMapping(path = "/pets", consumes = "application/json")
@@ -439,7 +439,7 @@ consumes属性也可以使用取反表达式，例如`!text/plain`表示出了�
 
 *MediaType为常用的媒体类型提供常量 - 例如 APPLICATION_JSON_VALUE，APPLICATION_JSON_UTF8_VALUE*
 
-####  Producible Media Types
+#### 1.4.2.4 Producible Media Types
 你可以使用请求头`Accept`来限定请求：
 ```java
 @GetMapping(path = "/pets/{petId}", produces = "application/json;charset=UTF-8")
@@ -454,7 +454,7 @@ produces 属性也可以使用取反表达式，例如`!text/plain`表示出了�
 你可以在Class上定义一个公用的produces . 不像其他的请求映射属性。但是如果方法级别指定了produces ，将会覆盖Class级别上的。
 *MediaType为常用的媒体类型提供常量 - 例如 APPLICATION_JSON_VALUE，APPLICATION_JSON_UTF8_VALUE*
 
-#### Parameters and Headers
+#### 1.4.2.5 Parameters and Headers
 你可以用请求参数来限定请求，可以指定存在查询参数`myParam`或不存在`!myParam`，或等于某个指定值`myParam=myValue`:
 ```java
 @GetMapping(path = "/pets/{petId}", params = "myParam=myValue")
@@ -471,7 +471,7 @@ public void findPet(@PathVariable String petId) {
 }
 ```
 
-#### HTTP HEAD, OPTIONS
+#### 1.4.2.6 HTTP HEAD, OPTIONS
 @GetMapping - 还有@RequestMapping（method = HttpMethod.GET），为了请求映射的目的，透明地支持HTTP HEAD。 Controller方法不需要改变。 在HttpHandler服务器适配器中应用的响应包装可确保将“Content-Length”标头设置为写入的字节数，而无需实际写入响应。
 
 默认情况下，通过将“Allow”响应头设置为所有具有匹配URL模式的@RequestMapping方法中列出的HTTP方法列表来处理HTTP OPTIONS。
@@ -480,18 +480,18 @@ public void findPet(@PathVariable String petId) {
 
 @RequestMapping方法可以显式映射到HTTP HEAD和HTTP OPTIONS，但在常见情况下这不是必需的。
 
-#### Custom Annotations
+#### 1.4.2.7 Custom Annotations
 Spring WebFlux支持使用组合注解进行请求映射。 这些注解本身是用@RequestMapping进行元注解的，并且用更限定，更具体的目的重新声明@RequestMapping属性的子集（或全部）。
 
 @GetMapping，@PostMapping，@PutMapping，@DeleteMapping和@PatchMapping是组合注解的示例。 它们是开箱即用的，因为大多数控制器方法应该映射到特定的HTTP方法，而不是使用默认情况下与所有HTTP方法相匹配的@RequestMapping。 如果您需要组合注解的示例，请查看如何声明这些注解。
 
 Spring WebFlux还支持自定义请求映射属性和自定义请求匹配逻辑。 这是一个更高级的选项，需要继承RequestMappingHandlerMapping并重写getCustomMethodCondition方法，您可以在其中检查自定义属性并返回自己的RequestCondition。
 
-### Handler methods
+### 1.4.3 Handler methods
 
 @RequestMapping处理程序方法具有灵活的签名，可以从一系列支持的控制器方法参数和返回值中进行选择。
 
-#### Method arguments
+#### 1.4.3.1 Method arguments
 下表显示支持的控制器方法参数。
 
 反应式类型（Reactor，RxJava或其他）在需要阻塞I / O的参数上受支持待解决，例如 读取请求正文。 这在描述栏中进行了标记。 在不需要阻塞的参数上不需要反应类型。
@@ -524,7 +524,7 @@ Spring WebFlux还支持自定义请求映射属性和自定义请求匹配逻辑
 |@RequestAttribute   | For access to request attributes. See @RequestAttribute for more details.|
 |Any other argument  |  If a method argument is not matched to any of the above, by default it is resolved as an @RequestParam if it is a simple type, as determined by BeanUtils#isSimpleProperty, or as an @ModelAttribute otherwise.|
 
-#### 返回值
+#### 1.4.3.2 返回值
 下表显示支持的控制器方法返回值。 请注意，对于所有返回值，通常都支持来自库（如Reactor，RxJava或其他）的反应式类型。
 
 |返回值|  描述|
@@ -541,12 +541,12 @@ Spring WebFlux还支持自定义请求映射属性和自定义请求匹配逻辑
 |Flux<ServerSentEvent>, Observable<ServerSentEvent>, or other reactive type |   Emit server-sent events; the SeverSentEventwrapper can be omitted when only data needs to be written (however text/event-stream must be requested or declared in the mapping through the produces attribute).|
 |Any other return value |   If a return value is not matched to any of the above, by default it is treated as a view name, if it is String or void (default view name selection applies); or as a model attribute to be added to the model, unless it is a simple type, as determined byBeanUtils#isSimpleProperty in which case it remains unresolved.|
 
-#### 类型转换
+#### 1.4.3.3 类型转换
 
 如果参数声明为String以外的其他参数，一些基于字符串的请求输入的方法参数 - 例如 @RequestParam，@RequestHeader，@ PathVariable，@MatrixVariable和@CookieValue可能需要进行类型转换。
 对于这种情况，基于配置的转换器自动应用类型转换。 默认情况下，支持int，long，Date等简单类型。 可以通过WebDataBinder定制类型转换，参见[mvc-ann-initbinder]，或者使用FormattingConversionService注册Formatter，请参阅Spring Field Formatting。
 
-#### Matrix variables(矩阵变量)
+#### 1.4.3.4 Matrix variables(矩阵变量)
 
 RFC 3986讨论了路径段中的name-value对。 在Spring WebFlux中，我们将那些称为“矩阵变量”，但它们也可以称为URI路径参数。
 
@@ -604,7 +604,7 @@ public void findPet(
 }
 ```
 
-#### @RequestParam
+#### 1.4.3.5 @RequestParam
 
 使用@RequestParam注解将查询参数绑定到控制器中的方法参数。 以下代码片段显示了用法：
 ```java
@@ -637,7 +637,7 @@ public class EditPetForm {
 
 注意，@RequestParam是可选的，默认情况下简单类型（BeanUtils#isSimpleProperty判断）或者其他的类型转换器都不匹配，就默认认为是@RequestParam。
 
-#### @RequestHeader
+#### 1.4.3.6 @RequestHeader
 绑定一个请求头中的值。
 有一个请求头是这样：
 ```
@@ -665,7 +665,7 @@ public void handle(
 
 *默认会把逗号分隔的字符串转换为字符串或者其他已知的可转换类型的数组或者集合。例如：一个参数使用了@RequestHeader("Accept")标注有可能是String、String[]或者List<String>类型*
 
-#### @CookieValue
+#### 1.4.3.7 @CookieValue
 绑定cookie值。
 有这样一个请求cookie:
 ```
@@ -682,7 +682,7 @@ public void handle(@CookieValue("JSESSIONID") String cookie) {
 
 如果参数类型不是String，默认就会进行参数转换。
 
-#### @ModelAttribute
+#### 1.4.3.8 @ModelAttribute
 在方法参数上使用@ModelAttribute注解来访问模型中的属性，或者如果不存在，则将其实例化。 模型属性也覆盖了查询参数和表单字段的名称与字段名称匹配的值。 这被称为数据绑定，它不必处理解析和转换单个查询参数和表单字段。 例如：
 ```java
 @PostMapping("/owners/{ownerId}/pets/{petId}/edit")
@@ -736,7 +736,7 @@ public Mono<String> processSubmit(@Valid @ModelAttribute("pet") Mono<Pet> petMon
 
 注意，@ModelAttribute是可选的，默认情况下所有的非简单类型（BeanUtils#isSimpleProperty判断）并且不能被其他类型转换，就会认为使用@ModelAttribute注解。
 
-#### @SessionAttributes
+#### 1.4.3.9 @SessionAttributes
 
 @SessionAttributes用于在请求之间的WebSession中存储模型属性。 它是一个声明特定控制器使用的会话属性的类型级注释。 这通常会列出模型属性的名称或模型属性的类型，这些属性应该透明地存储在会话中供随后的访问请求使用。例如：
 ```java
@@ -769,7 +769,7 @@ public class EditPetForm {
 }
 ```
 
-#### @SessionAttribute
+#### 1.4.3.10 @SessionAttribute
 
 如果您需要访问全局（即在控制器之外）管理的预先存在的会话属性，并且可能存在也可能不存在，请在方法参数上使用@SessionAttribute注释：
 ```java
@@ -783,7 +783,7 @@ public String handle(@SessionAttribute User user) {
 
 为了将会话中的模型属性临时存储为控制器工作流的一部分，请考虑使用@SessionAttributes中所述的SessionAttributes。
 
-#### @RequestAttribute
+#### 1.4.3.11 @RequestAttribute
 类似于@SessionAttribute，可以使用@RequestAttribute注释来访问先前创建的请求属性，例如， 通过WebFilter添加的：
 ```
 @GetMapping("/")
@@ -791,7 +791,7 @@ public String handle(@RequestAttribute Client client) {
     // ...
 }
 ```
-#### Multipart
+#### 1.4.3.12 Multipart
 
 正如Multipart data中所解释的，ServerWebExchange提供对Multipart 内容的访问。 在控制器中处理文件上传表单（例如从浏览器）的最佳方式是通过数据绑定到对象：
 ```java
@@ -863,7 +863,7 @@ public String handle(@Valid @RequestPart("meta-data") MetaData metadata,
 ```
 
 
-#### @RequestBody
+#### 1.4.3.13 @RequestBody
 使用@RequestBody注释让请求体通过HttpMessageReader读取并反序列化成Object。 下面是一个带有@RequestBody参数的例子：
 ```java
 @PostMapping("/accounts")
@@ -889,7 +889,7 @@ public void handle(@Valid @RequestBody Account account, BindingResult result) {
 }
 ```
 
-#### HttpEntity
+#### 1.4.3.14 HttpEntity
 HttpEntity或多或少与使用@RequestBody相同，但包含了请求标头和主体的容器对象。 下面是一个例子：
 ```java
 @PostMapping("/accounts")
@@ -898,7 +898,7 @@ public void handle(HttpEntity<Account> entity) {
 }
 ```
 
-#### @ResponseBody
+#### 1.4.3.15 @ResponseBody
 在一个方法上使用@ResponseBody注解来通过HttpMessageWriter将返回序列化到响应主体。 例如：
 ```java
 @GetMapping("/accounts/{id}")
@@ -917,7 +917,7 @@ public Account handle() {
 
 您可以使用WebFlux Config的HTTP message codecs选项来配置或定制消息写入。
 
-#### ResponseEntity
+#### 1.4.3.16 ResponseEntity
 ResponseEntity或多或少与使用@ResponseBody相同，但是指定了请求标头和主体的容器对象。 下面是一个例子：
 ```java
 @PostMapping("/something")
@@ -928,7 +928,7 @@ public ResponseEntity<String> handle() {
 }
 ```
 
-#### Jackson JSON
+#### 1.4.3.17 Jackson JSON
 Jackson 序列化视图
 Spring WebFlux为Jackson 的序列化视图提供了内置的支持，它允许只呈现部分对象属性。 要将其与@ResponseBody或ResponseEntity控制器方法一起使用，请使用Jackson的@JsonView注释来激活序列化视图类：
 ```java
@@ -972,7 +972,7 @@ public class User {
 
 *@JsonView的值允许指定一个视图类的数组，但每个控制器方法只能使用一个注解。 如果您需要激活多个视图，请使用复合视图。*
 
-### Model Methods
+### 1.4.4 Model Methods
 可以在@RequestMapping方法参数上使用@ModelAttribute注释来创建或访问模型中的Object并将其绑定到请求。 @ModelAttribute也可以用作控制器方法的方法级注释，其目的不是处理请求，而是在请求处理之前添加常用模型属性。
 
 控制器可以有任意数量的@ModelAttribute方法。 所有这些方法在相同控制器中的@RequestMapping方法之前被调用。 @ModelAttribute方法也可以通过@ControllerAdvice在控制器之间共享。 有关更多详细信息，请参阅Controller Advice部分。
@@ -1026,7 +1026,7 @@ public Account handle() {
 ```
 
 
-### Binder Methods
+### 1.4.5 Binder Methods
 @Controller或@ControllerAdvice类中的@InitBinder方法可用于自定义基于字符串的请求值（例如请求参数，路径变量，请求头，cookie等）的方法参数的类型转换。 在将请求参数绑定到@ModelAttribute参数上时，也有类型转换。
 
 @InitBinder方法可以注册特定控制器的java.bean.PropertyEditor或Spring Converter和Formatter组件。 另外，WebFlux Java配置可用于在全局共享的FormattingConversionService中注册Converter和Formatter类型。
@@ -1061,7 +1061,7 @@ public class FormController {
 }
 ```
 
-### Controller Advice
+### 1.4.6 Controller Advice
 通常，@ExceptionHandler，@InitBinder和@ModelAttribute方法适用于声明它们的@Controller类（或类层次结构）中。如果希望这些方法跨控制器在全局范围内应用，则可以在标有@ControllerAdvice或@RestControllerAdvice的类中声明。
 
 @ControllerAdvice使用了@Component，这意味着这些类可以通过组件扫描注册为Spring bean。 @RestControllerAdvice也是一个用@ControllerAdvice和@ResponseBody标记的元注释，它意味着@ExceptionHandler方法通过消息转换（就像视图解析/模板渲染）呈现给响应主体。
@@ -1086,10 +1086,10 @@ public class ExampleAdvice3 {}
 请记住，上述选择器在运行时执行，如果广泛使用，可能会对性能产生负面影响。 有关更多详细信息，请参阅@ControllerAdvice Javadoc。
 
 
-## URI Links
+## 1.5 URI Links
 本节介绍Spring框架中可用于准备URI的各种选项。
 
-### UriComponents
+### 1.5.1 UriComponents
 UriComponents与java.net.URI差不多。 但是它带有一个专用的UriComponentsBuilder并支持URI模板变量：
 ```java
 String uriTemplate = "http://example.com/hotels/{hotel}";
@@ -1117,7 +1117,7 @@ URI uri = UriComponentsBuilder.fromUriString(uriTemplate)
         .toUri();
 ```
 
-### UriBuilder
+### 1.5.2 UriBuilder
 UriComponentsBuilder是UriBuilder的一个实现。 UriBuilderFactory和UriBuilder一起提供了可从URI模板构建URI的可插入机制，以及共享公共属性（如基本URI，编码策略等）的方法。
 
 RestTemplate和WebClient都可以使用UriBuilderFactory进行配置，以便自定义URI模板创建URI的方式。 默认实现在内部依赖于UriComponentsBuilder，并提供了配置通用基本URI，替代编码模式策略等的选项。
@@ -1158,7 +1158,7 @@ URI uri = uriBuilderFactory.uriString("/hotels/{hotel}")
         .build("Westin", "123"); // encoding strategy applied..
 ```
 
-### URI Encoding
+### 1.5.3 URI Encoding
 在UriComponents中编码URI的默认方式如下所示：
 
 - URI变量被扩展。
@@ -1182,10 +1182,10 @@ factory.setEncodingMode(EncodingMode.VALUES_ONLY);
 这种编码策略在扩展之前对每个URI变量值应用UriUtils.encode（String，Charset），有效编码所有非US-ASCII字符以及在URI中具有保留含义的所有字符，这确保扩展的URI变量 对URI的结构或含义没有任何影响。
 
 
-## Functional Endpoints
+## 1.6 Functional Endpoints
 Spring WebFlux包含一个轻量级的函数式编程模型，其中函数用于路由和处理请求，并且契约是为不可变性而设计的。 它是基于注释的编程模型的一种替代方案，但是同样可以在Reactive Spring Web基础上运行.
 
-### HandlerFunction
+### 1.6.1 HandlerFunction
 传入的HTTP请求由HandlerFunction处理，它本质上是一个接受ServerRequest并返回Mono <ServerResponse>的函数。 如果您熟悉基于注释的编程模型，则HandlerFunction相当于@RequestMapping方法。
 
 ServerRequest和ServerResponse是不可变的接口，它提供了JDK-8友好的访问底层HTTP消息的能力，以及反应式非阻塞背压。 该请求将主体暴露为Reactor Flux或Mono类型; 响应接受任何Reactive Streams Publisher作为正文。 Reactive Libraries解释了这一点的合理性。
@@ -1262,7 +1262,7 @@ public class PersonHandler {
 ②createPerson 把请求体中的Person存储起来。注意，PersonRepository.savePerson(Person)返回Mono<void>:这是一个空的Mono并在从请求体中读取完数据保存后发出完成信号。所以我们收到完成信号（即保存完成后）后使用build(Publisher<Void>)方法去发送一个响应。
 ③ getPerson 返回使用路径变量id标识出的单个Person。如果我们从存储中成功获取就创建一个JSON响应，如果没有找到就使用switchIfEmpty(Mono<T>)返回一个404未发现响应。
 
-### RouterFunction
+### 1.6.2 RouterFunction
 传入的请求通过一个RouterFunction被路由到处理函数，这是一个接受ServerRequest的函数，并返回一个Mono <HandlerFunction>。 如果请求匹配特定的路由，则返回一个处理函数，否则返回一个空的Mono。 RouterFunction与基于注解的编程模型中的@RequestMapping注释具有相似的用途。
 
 通常，您不要自己编写路由器功能，而是使用RouterFunctions.route（RequestPredicate，HandlerFunction）使用请求断言和处理函数创建一个路由器函数。 如果断言适用，则将请求路由到给定的处理函数; 否则不执行路由，返回404 Not Found响应。 虽然您可以编写自己的RequestPredicate，但您不必：RequestPredicates工具类提供常用的断言，例如基于路径，HTTP方法，内容类型等的匹配。使用路由，我们可以路由到我们的“Hello World” 处理函数：
@@ -1290,7 +1290,7 @@ RouterFunction<ServerResponse> personRoute =
 
 除了路由器功能外，您还可以通过调用RequestPredicate.and（RequestPredicate）或RequestPredicate.or（RequestPredicate）来组合请求断言。 这些按预期工作：and表示两个断言都要匹配; or表示其中一个匹配就可以。 RequestPredicates中的大多数断言都是组合。 例如，RequestPredicates.GET（String）是RequestPredicates.method（HttpMethod）和RequestPredicates.path（String）的组合。
 
-### Running a server
+### 1.6.3 Running a server
 你如何在HTTP服务器上运行路由器功能？ 一个简单的选择是使用以下方法之一将路由器功能转换为HttpHandler：
 
 - RouterFunctions.toHttpHandler（RouterFunction）
@@ -1344,7 +1344,7 @@ public class WebConfig implements WebFluxConfigurer {
 }
 ```
 
-### HandlerFilterFunction
+### 1.6.4 HandlerFilterFunction
 
 由路由器功能映射的路由可以通过调用RouterFunction.filter（HandlerFilterFunction）进行过滤，其中HandlerFilterFunction本质上是一个接受ServerRequest和HandlerFunction的函数，并返回ServerResponse。 HandlerFunction参数表示链中的下一个元素：这通常是路由到的HandlerFunction，但如果应用多个过滤器，则也可以是另一个FilterFunction。 使用注解，可以使用@ControllerAdvice和/或ServletFilter实现类似的功能。 让我们在我们的路由中添加一个简单的安全过滤器，假设我们有一个可以确定是否允许特定路径的SecurityManager：
 ```java
@@ -1366,15 +1366,15 @@ RouterFunction<ServerResponse> filteredRoute =
 
 你可以在这个例子中看到调用next.handle（ServerRequest）是可选的：我们只允许在允许访问时执行处理函数。
 
-## CORS
+## 1.7 CORS
 通过专用的CorsWebFilter提供对功能端点的CORS支持。
 
-###介绍
+### 1.7.1 介绍
 出于安全原因，浏览器禁止对当前域以外的资源进行AJAX调用。 例如，您可以在一个标签中使用银行帐户，在另一个标签中使用evil.com。 来自evil.com的脚本不应该使用您的凭证向您的银行API发送AJAX请求，例如 从您的帐户中提取钱！
 
 跨源资源共享（CORS）是大多数浏览器实现的W3C规范，允许您指定哪种类型的跨域请求被授权，而不是使用基于IFRAME或JSONP的不太安全和功能较弱的解决方法。
 
-### Processing
+### 1.7.2 Processing
 CORS规范区分预检，简单和实际请求。 要了解CORS如何工作，可以阅读[本文](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)以及其他许多内容，或参阅规范以获取更多详细信息。
 
 Spring WebFlux HandlerMapping提供了对CORS的内置支持。 在成功将请求映射到处理程序后，HandlerMapping会检查给定请求和处理程序的CORS配置并采取进一步的操作。 预检请求被直接处理，而简单和实际的CORS请求被拦截，验证并且需要设置CORS响应头。
@@ -1392,7 +1392,7 @@ HandlerMapping级别的全局CORS配置可以与更细粒度的处理器级CORS�
 - CorsProcessor, DefaultCorsProcessor
 - AbstractHandlerMapping
 
-### @CrossOrigin
+### 1.7.3 @CrossOrigin
 @CrossOrigin 注解可以在控制器方法上开启跨域：
 ```java
 @RestController
@@ -1460,7 +1460,7 @@ public class AccountController {
 }
 ```
 
-### Global Config
+### 1.7.4 Global Config
 除了细粒度的控制器方法级配置之外，您还可能需要定义一些全局CORS配置。 您可以在任何HandlerMapping上分别设置基于URL的CorsConfiguration映射。 然而，大多数应用程序将使用WebFlux Java配置来实现这一点。
 
 默认情况下全局配置开启下面的配置：
@@ -1493,7 +1493,7 @@ public class WebConfig implements WebFluxConfigurer {
 }
 ```
 
-### CORS WebFilter
+### 1.7.5 CORS WebFilter
 您可以通过内置的CorsWebFilter来应用CORS支持，这非常适合功能端点。
 
 要配置过滤器，您可以声明一个CorsWebFilter bean并将CorsConfigurationSource传递给其构造函数：
@@ -1518,7 +1518,7 @@ CorsWebFilter corsFilter() {
 }
 ```
 
-## Web Security
+## 1.8 Web Security
 项目为保护Web应用程序免受恶意攻击提供支持。 查看Spring Security参考文档，其中包括：
 - [Spring Security](https://projects.spring.io/spring-security/)
 - [WebFlux Security](https://docs.spring.io/spring-security/site/docs/current/reference/html5/#jc-webflux)
@@ -1526,16 +1526,16 @@ CorsWebFilter corsFilter() {
 - [CSRF Protection](https://docs.spring.io/spring-security/site/docs/current/reference/html5/#csrf)
 - [Security Response Headers](https://docs.spring.io/spring-security/site/docs/current/reference/html5/#headers)
 
-## 视图技术
+## 1.9 视图技术
 待更新。。。
 这里是视图技术的一些说明，包括Thymeleaf、freeMarker、HTML、JSON等。
 https://docs.spring.io/spring/docs/current/spring-framework-reference/web-reactive.html#webflux-view
 
-## WebFlux配置
+## 1.10 WebFlux配置
 待更新。。。
 WebFlux的相关配置
 
-### HTTP/2
+### 1.10.1 HTTP/2
 需要Servlet 4容器来支持HTTP / 2，并且Spring Framework 5与Servlet API 4兼容。从编程模型的角度来看，没有什么具体的应用程序需要做。 但是有一些与服务器配置相关的考虑事项 有关更多详细信息，请查看HTTP / 2 wiki页面。
 
 目前Spring WebFlux不支持Netty的HTTP / 2。 也不支持以编程方式将资源推送到客户端。

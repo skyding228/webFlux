@@ -1,7 +1,7 @@
-# WebSockets
+# 3 WebSockets
 参考文档的这一部分介绍了对Reactive堆栈，WebSocket消息传递的支持。
 
-## 简介
+## 3.1 简介
 WebSocket协议RFC 6455提供了一种标准化方法，可通过单个TCP连接在客户端和服务器之间建立全双工，双向通信通道。 它是来自HTTP的一种不同的TCP协议，但被设计为通过HTTP工作，使用端口80和443并允许重新使用现有的防火墙规则。
 
 WebSocket交互以HTTP请求开始，HTTP请求使用HTTP“Upgrade”头进行Upgrade，或者在此情况下切换到WebSocket协议：
@@ -30,7 +30,7 @@ Sec-WebSocket-Protocol: v10.stomp
 
 请注意，如果WebSocket服务器在Web服务器（例如nginx）后面运行，则可能需要对其进行配置，以将WebSocket升级请求传递到WebSocket服务器。 同样，如果应用程序在云环境中运行，请检查云提供程序与WebSocket支持相关的说明。
 
-### HTTP 与 WebSocket比较
+### 3.1.1 HTTP 与 WebSocket比较
 
 尽管WebSocket被设计为与HTTP兼容并以HTTP请求开始，但了解这两种协议导致非常不同的体系结构和应用程序编程模型是很重要的。
 
@@ -42,7 +42,7 @@ WebSocket也是一种低级别传输协议，它不像HTTP那样规定消息内�
 
 WebSocket客户端和服务器可以通过HTTP握手请求中的“Sec-WebSocket-Protocol”头部来协商使用更高级别的消息传递协议（例如STOMP），或者在没有他们需要提供它们的情况下自己的约定。
 
-### 什么时候使用websocket
+### 3.1.2 什么时候使用websocket
 WebSockets可以使网页动态和互动。然而，在许多情况下，Ajax和HTTP流和/或长轮询的组合可以提供简单而有效的解决方案。
 
 例如，新闻，邮件和社交需要动态更新，但每隔几分钟就可以完成这一操作。另一方面，协作，游戏和财务应用程序需要更接近实时。
@@ -51,10 +51,10 @@ WebSockets可以使网页动态和互动。然而，在许多情况下，Ajax和
 
 请记住，通过Internet，限制性代理不在您的控制范围内，可能会阻止WebSocket交互，因为它们未配置为传递upgrade头部，或者因为它们空闲时关闭长连接？这意味着在防火墙内部使用WebSocket用于内部应用程序是一个比直接面向公众的应用程序更直接的决定。
 
-## WebSocket API
+## 3.2 WebSocket API
 Spring框架提供了一个WebSocket API，可用于编写处理WebSocket消息的客户端和服务器端应用程序。
 
-### WebSocketHandler
+### 3.2.1 WebSocketHandler
 实现WebSocketHandler接口就可以简单的实现一个WebSocket了：
 ```java
 import org.springframework.web.reactive.socket.WebSocketHandler;
@@ -92,12 +92,12 @@ static class WebConfig {
 }
 ```
 
-### WebSocket Handshake
+### 3.2.2 WebSocket Handshake
 WebSocketHandlerAdapter本身不执行WebSocket握手。 相反，它委托给WebSocketService的一个实例。 默认的WebSocketService实现是HandshakeWebSocketService。
 
 HandshakeWebSocketService对WebSocket请求执行基本检查，并委托给特定于服务器的RequestUpgradeStrategy。 目前Reactor Netty，Tomcat，Jetty和Undertow存在upgrade 策略。
 
-### Server config
+### 3.2.3 Server config
 每个服务器的RequestUpgradeStrategy公开可用于底层WebSocket引擎的与WebSocket相关的配置选项。 以下是在Tomcat上运行时设置WebSocket选项的示例：
 ```java
 @Configuration
@@ -117,10 +117,10 @@ static class WebConfig {
 }
 ```
 
-### CORS
+### 3.2.4 CORS
 配置CORS和限制对WebSocket端点的访问的最简单方法是让WebSocketHandler实现CorsConfigurationSource并返回带有允许的来源，头部等的CorsConfiguraiton。如果由于任何原因您无法这样做，您还可以设置corsConfigurations属性，在SimpleUrlHandler上通过URL模式指定CORS设置。 如果两者都指定，则它们通过CorsConfiguration上的combine 方法进行组合。
 
-## WebSocketClient
+## 3.3 WebSocketClient
 Spring WebFlux为Reactor Netty，Tomcat，Jetty，Undertow和标准Java（即JSR-356）提供了WebSocketClient抽象。
 
 *Tomcat客户端实际上是标准Java的一个扩展，在WebSocketSession处理中利用Tomcat特定的API来暂停接收背压信息的一些额外功能。*
