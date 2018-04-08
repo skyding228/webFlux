@@ -87,7 +87,9 @@ spring-web模块提供底层基础设施和HTTP抽象 - 客户端和服务器，
 ### HttpHandler
 每个HTTP服务器都有一些用于HTTP请求处理的API。 HttpHandler是一种处理请求和响应的简单协议。 它是故意进行了最小化。 其主要目的是为不同服务器上的HTTP请求处理提供基于Reactive Streams的通用API。
 
-spring-web模块包含的对每种支持的服务器的适配器。下面的这张表显示了使用了哪些服务器API和ReactiveStreams的支持来自哪里：
+spring-web模块包含的对每种支持的服务器的适配器。下面的这张表显示了使用了哪些服务器API和ReactiveStreams的支持来自哪里:
+
+
 | 服务器名称   | API  |   ReactiveStreams支持|
 |--------------|------|-------------------------|
 |Netty            |Netty API |     Reactor Netty |
@@ -98,6 +100,7 @@ spring-web模块包含的对每种支持的服务器的适配器。下面的这�
 
 
 下面是一些针对各个服务器的必要的依赖、支持的版本和代码片段。
+
 |Server name  |  Group id |    Artifact name|
 |---------------|------------|------------------|
 |Reactor Netty |   io.projectreactor.ipc |   reactor-netty|
@@ -106,20 +109,24 @@ spring-web模块包含的对每种支持的服务器的适配器。下面的这�
 |Jetty  |  org.eclipse.jetty  |  jetty-server,  jetty-servlet|
 
 - Reactor Netty
-```
+```java
 HttpHandler handler = ...
 ReactorHttpHandlerAdapter adapter = new ReactorHttpHandlerAdapter(handler);
 HttpServer.create(host, port).newHandler(adapter).block();
 ```
+
 - Undertow
-```
+
+```java
 HttpHandler handler = ...
 UndertowHttpHandlerAdapter adapter = new UndertowHttpHandlerAdapter(handler);
 Undertow server = Undertow.builder().addHttpListener(port, host).setHandler(adapter).build();
 server.start();
 ```
+
 - Tomcat
-```
+
+```java
 HttpHandler handler = ...
 Servlet servlet = new TomcatHttpHandlerAdapter(handler);
 
@@ -134,7 +141,8 @@ server.start();
 ```
 
 - Jetty
-```
+
+```java
 HttpHandler handler = ...
 Servlet servlet = new JettyHttpHandlerAdapter(handler);
 
@@ -149,6 +157,7 @@ connector.setPort(port);
 server.addConnector(connector);
 server.start();
 ```
+
 *要将WAR部署为Servlet 3.1+容器，请使用ServletHttpHandlerAdapter包装HttpHandler并将其注册为Servlet。 这可以通过使用AbstractReactiveWebInitializer自动完成。*
 
 ### WebHandler API
@@ -158,12 +167,14 @@ HttpHandler是在不同的HTTP服务器上运行的最底层的协议。 在这�
 所有WebHandler API组件都以ServerWebExchange作为输入，在ServerHttpRequest和ServerHttpResponse之上，为Web应用程序提供额外的构建块，例如请求属性，会话属性，对解析表单数据的访问，文件上传等等。
 
 WebHttpHandlerBuilder用于组装请求处理链。 您可以使它的方法来手动添加组件，或者更有可能通过Spring ApplicationContext获取它们，并通过服务器适配器运行HttpHandler准备好的结果。
-```
+```java
 ApplicationContext context = ...
 HttpHandler handler = WebHttpHandlerBuilder.applicationContext(context).build()
 ```
+
 #### 特殊的bean类型
 下表列出了一些WebHttpHandlerBuilder可以从容器中获取的组件：
+
 |Bean name |   Bean type  |  Count   | Description|
 |-------------|--------------|----------|---------------|
 |any   | WebExceptionHandler |   0..N |   Exception handlers to apply after all WebFilter's and the target WebHandler.|
@@ -177,17 +188,21 @@ HttpHandler handler = WebHttpHandlerBuilder.applicationContext(context).build()
 #### 表单数据
 
 ServerWebExchange 暴露了下面的方法，可以获取表单数据
-```
+
+```java
 Mono<MultiValueMap<String, String>> getFormData();
 ```
+
+
 DefaultServerWebExchange使用配置的HttpMessageReader将表单数据（“application / x-www-form-urlencoded”）解析为MultiValueMap。 默认情况下，FormHttpMessageReader被配置为通过ServerCodecConfigurer bean使用（请参阅Web Handler API）。
 
 #### 文件上传
 
 ServerWebExchange 暴露了下面的方法可以获取上传文件的数据：
-```
+```java
 Mono<MultiValueMap<String, Part>> getMultipartData();
 ```
+
 DefaultServerWebExchange使用配置的HttpMessageReader <MultiValueMap <String，Part>将“multipart / form-data”内容解析为MultiValueMap。 目前Synchronoss NIO Multipart是唯一支持的第三方库，也是我们唯一知道的用于非阻塞解析多部分请求的库。 它通过ServerCodecConfigurer bean启用（请参阅Web处理程序API）。
 
 要以流方式解析多部分数据，请使用从HttpMessageReader <Part>返回的Flux <Part>。 例如，在注解控制器中，使用@RequestPart意味着按名称对各个部分进行类似Map的访问，因此需要完整地解析多部分数据。 相比之下，@RequestBody可用于将内容解码到Flux <Part>，而不会收集到MultiValueMap。
@@ -226,7 +241,7 @@ WebFlux应用程序中的Spring配置通常包含：
 - 其他
 
 WebHttpHandlerBuilder 将那个配置信息进行构建处理链：
-```
+```java
 ApplicationContext context = ...
 HttpHandler handler = WebHttpHandlerBuilder.applicationContext(context);
 ```
@@ -237,6 +252,7 @@ HttpHandler handler = WebHttpHandlerBuilder.applicationContext(context);
 DispatcherHandler委托特殊的bean来处理请求并呈现相应的响应。 “特殊bean”是指实现WebFlux框架协议的Spring管理的对象实例。 这些通常是内置的，但您可以自定义其属性，然后进行扩展或替换。
 
 下表是DispatcherHandler可以获取到的特殊beans，注意，也有一些其他在底层可以获取的bean。
+
 |Bean类型  |  解释说明|
 |------------|----------|
 |HandlerMapping |   将请求映射到处理器。 该映射基于一些标准，其细节因HandlerMapping实现而异 - 注解的控制器，简单的URL模式映射等。HandlerMapping的主要实现是用于@RequestMapping注解方法的RequestMappingHandlerMapping，用于功能性端点路由的RouterFunctionMapping以及用于显式注册URI路径模式和WebHandler's的SimpleUrlHandlerMapping。|
@@ -295,7 +311,7 @@ ViewResolutionResultHandler 支持内容协商。它会比较请求和选择的V
 
 ## 注解Controller
 Spring WebFlux提供了一种基于注解的编程模型，其中@Controller和@RestController组件使用注解来表示请求映射，请求输入，异常处理等。 带注解的控制器具有灵活的方法签名，不必扩展基类，也不需要实现特定的接口。
-```
+```java
 @RestController
 public class HelloController {
 
@@ -305,6 +321,8 @@ public class HelloController {
     }
 }
 ```
+
+
 在上面的示例中，这个方法返回的字符串将会被写入响应体中。
 
 ### @Controller
@@ -312,7 +330,7 @@ public class HelloController {
 @Controller允许自动检测，与Spring其他支持一致，用于检测类路径中的@Component类，并为它们自动注册bean定义，让它作为Web组件。
 
 为了开启扫描@Controller，你可以用Java代码添加组件扫描注解:
-```
+```java
 @Configuration
 @ComponentScan("org.example.web")
 public class WebConfig {
@@ -320,6 +338,7 @@ public class WebConfig {
     // ...
 }
 ```
+
 @RestController是一个组合注解，它自己被@Controller和@ResponseBody进行了标注，使用它标注的类的每个方法都会继承@ResponseBody注解。所以直接把返回值写入响应体，不在进行视图解析渲染。
 
 ### Request Mapping
@@ -358,14 +377,15 @@ class PersonController {
 - `**` 可以匹配多个目录上的0个或者多个字符
 
 你也可以生命URI变量，并且通过@PathVariable访问他们：
-```
+```java
 @GetMapping("/owners/{ownerId}/pets/{petId}")
 public Pet findPet(@PathVariable Long ownerId, @PathVariable Long petId) {
     // ...
 }
 ```
+
 URI变量可以在类和方法级别定义：
-```
+```java
 @Controller
 @RequestMapping("/owners/{ownerId}")
 public class OwnerController {
@@ -376,18 +396,20 @@ public class OwnerController {
     }
 }
 ```
+
 URI变量会自动转换为恰当的类型，或者抛出`TypeMismatchException`。默认支持int/long/Date等类型，你可以注册任何其他类型。可以查看 Type Conversion 和 Binder Methods.
 
 URI变量可以明确指定名称，例如@PathVariable("customId")，如果你的代码编译时包含了debugging 信息或者在java 8 指定了`-parameters`参数，可以省略名称。
 
 `{*varName}`声明了一个URI变量，匹配0个或多个字符，例如`/resources/{*path}` 匹配所有的`/resources/`下的路径，并且变量`path`捕获了相对路径。
 `{varName:regex}`声明了一个正则表达式变量，例如给定路径`/spring-web-3.0.5 .jar`,下面的方法或提取出名称、版本和扩展名：
-```
+```java
 @GetMapping("/{name:[a-z-]+}-{version:\\d\\.\\d\\.\\d}{ext:\\.[a-z]+}")
 public void handle(@PathVariable String version, @PathVariable String ext) {
     // ...
 }
 ```
+
 URI匹配模式也可以包含占位符`${...}`，PropertyPlaceHolderConfigurer从本地、系统变量、环境变量和其他配置文件中解析。这个可以用来参数化一些外部配置。
 
 *Spring WebFlux使用PathPattern和PathPatternParser进行URI路径匹配支持，这两者都位于spring-web中，并且明确设计用于在运行时匹配大量URI路径模式的Web应用程序中的HTTP URL路径。*
@@ -403,12 +425,14 @@ Spring WebFlux不支持后缀模式匹配 - 不同于Spring MVC，像/ person这
 
 #### Consumable Media Types
 你可以通过`Content-Type`限定请求：
-```
+```java
 @PostMapping(path = "/pets", consumes = "application/json")
 public void addPet(@RequestBody Pet pet) {
     // ...
 }
 ```
+
+
 consumes属性也可以使用取反表达式，例如`!text/plain`表示出了此类型之外的类型。
 
 你可以在Class上定义一个公用的consumes. 不像其他的请求映射属性。但是如果方法级别指定了consumes，将会覆盖Class级别上的。
@@ -417,13 +441,14 @@ consumes属性也可以使用取反表达式，例如`!text/plain`表示出了�
 
 ####  Producible Media Types
 你可以使用请求头`Accept`来限定请求：
-```
+```java
 @GetMapping(path = "/pets/{petId}", produces = "application/json;charset=UTF-8")
 @ResponseBody
 public Pet getPet(@PathVariable String petId) {
     // ...
 }
 ```
+
 produces 属性也可以使用取反表达式，例如`!text/plain`表示出了此类型之外的类型。
 
 你可以在Class上定义一个公用的produces . 不像其他的请求映射属性。但是如果方法级别指定了produces ，将会覆盖Class级别上的。
@@ -431,19 +456,21 @@ produces 属性也可以使用取反表达式，例如`!text/plain`表示出了�
 
 #### Parameters and Headers
 你可以用请求参数来限定请求，可以指定存在查询参数`myParam`或不存在`!myParam`，或等于某个指定值`myParam=myValue`:
-```
+```java
 @GetMapping(path = "/pets/{petId}", params = "myParam=myValue")
 public void findPet(@PathVariable String petId) {
     // ...
 }
 ```
+
 你也可以使用请求头来作为条件：
-```
+```java
 @GetMapping(path = "/pets", headers = "myHeader=myValue")
 public void findPet(@PathVariable String petId) {
     // ...
 }
 ```
+
 #### HTTP HEAD, OPTIONS
 @GetMapping - 还有@RequestMapping（method = HttpMethod.GET），为了请求映射的目的，透明地支持HTTP HEAD。 Controller方法不需要改变。 在HttpHandler服务器适配器中应用的响应包装可确保将“Content-Length”标头设置为写入的字节数，而无需实际写入响应。
 
@@ -470,6 +497,7 @@ Spring WebFlux还支持自定义请求映射属性和自定义请求匹配逻辑
 反应式类型（Reactor，RxJava或其他）在需要阻塞I / O的参数上受支持待解决，例如 读取请求正文。 这在描述栏中进行了标记。 在不需要阻塞的参数上不需要反应类型。
 
 支持JDK 1.8的java.util.Optional作为方法参数，相当于required属性- 例如 @RequestParam，@RequestHeader等，并相当于required = false。
+
 |参数  |  描述|
 |------|------|
 |ServerWebExchange |   Access to the full ServerWebExchange — container for the HTTP request and response, request and session attributes, checkNotModified methods, and others.|
@@ -525,7 +553,7 @@ RFC 3986讨论了路径段中的name-value对。 在Spring WebFlux中，我们�
  Matrix variables可出现在任何路径段中，每个变量用分号分隔，多个值用逗号分隔，例如`/cars;color=red,green;year=2012`。 也可以通过重复的变量名称来指定多个值，例如`color=red;color=green;color=blue`。
 
 与Spring MVC不同的是，在WebFlux中，URL中Matrix variables的存在与否不会影响请求映射。 换句话说，您不需要使用URI变量来隐藏变量内容。 也就是说，如果要从控制器方法访问矩阵变量，则需要将URI变量添加到需要矩阵变量的路径段。 下面是一个例子：
-```
+```java
 // GET /pets/42;q=11;r=22
 
 @GetMapping("/pets/{petId}")
@@ -536,8 +564,9 @@ public void findPet(@PathVariable String petId, @MatrixVariable int q) {
 }
 ```
 
+
 有可能所有的路径目录都包含矩阵变量，有时候你需要指出这个矩阵变量希望在哪里，例如：
-```
+```java
 // GET /owners/42;q=11/pets/21;q=22
 
 @GetMapping("/owners/{ownerId}/pets/{petId}")
@@ -549,8 +578,9 @@ public void findPet(
     // q2 == 22
 }
 ```
+
 一个矩阵变量也可以定义为可选的，指定一个默认值：
-```
+```java
 // GET /pets/42
 
 @GetMapping("/pets/{petId}")
@@ -559,8 +589,9 @@ public void findPet(@MatrixVariable(required=false, defaultValue="1") int q) {
     // q == 1
 }
 ```
+
 想要获取所有的矩阵变量，可以使用`MultiValueMap`:
-```
+```java
 // GET /owners/42;q=11;r=12/pets/21;q=22;s=23
 
 @GetMapping("/owners/{ownerId}/pets/{petId}")
@@ -576,7 +607,7 @@ public void findPet(
 #### @RequestParam
 
 使用@RequestParam注解将查询参数绑定到控制器中的方法参数。 以下代码片段显示了用法：
-```
+```java
 @Controller
 @RequestMapping("/pets")
 public class EditPetForm {
@@ -594,6 +625,7 @@ public class EditPetForm {
 
 }
 ```
+
 
 *与将查询参数，表单数据和上传文件合并为一个的Servlet API“请求参数”概念不同，在WebFlux中，每个需要通过ServerWebExchange单独访问。@RequestParam仅与查询参数绑定，但是可以使用数据绑定将查询参数，表单数据和文件上传数据绑定到对象上。*
 
@@ -616,8 +648,9 @@ Accept-Encoding          gzip,deflate
 Accept-Charset             ISO-8859-1,utf-8;q=0.7,*;q=0.7
 Keep-Alive                    300
 ```
+
 下面的代码可以获取到请求头`Accept-Encoding`和`Keep-Alive`的值:
-```
+```java
 @GetMapping("/demo")
 public void handle(
         @RequestHeader("Accept-Encoding") String encoding,
@@ -625,6 +658,7 @@ public void handle(
     //...
 }
 ```
+
 如果参数不是String类型，默认也会进行类型转换。
 
 如果@RequestHeader注解的参数是Map<String, String>, MultiValueMap<String, String>, 或 HttpHeaders 就会获取到所有的请求头信息。
@@ -638,20 +672,23 @@ public void handle(
 JSESSIONID=415A4AC178C59DACE0B2C9CA727CDD84
 ```
 下面的代码很简单的就可以获取到cookie值:
-```
+```java
 @GetMapping("/demo")
 public void handle(@CookieValue("JSESSIONID") String cookie) {
     //...
 }
 ```
+
+
 如果参数类型不是String，默认就会进行参数转换。
 
-####@ModelAttribute
+#### @ModelAttribute
 在方法参数上使用@ModelAttribute注解来访问模型中的属性，或者如果不存在，则将其实例化。 模型属性也覆盖了查询参数和表单字段的名称与字段名称匹配的值。 这被称为数据绑定，它不必处理解析和转换单个查询参数和表单字段。 例如：
-```
+```java
 @PostMapping("/owners/{ownerId}/pets/{petId}/edit")
 public String processSubmit(@ModelAttribute Pet pet) { }
 ```
+
 上面的Pet实例解析如下：
 - 已经添加了就通过 Model Methods 从model中获取
 - 通过@SessionAttributes 从HTTP session 中获取
@@ -661,7 +698,7 @@ public String processSubmit(@ModelAttribute Pet pet) { }
 在获得实例之后，应用数据绑定。 WebExchangeDataBinder类将查询参数和表单字段的名称与目标对象上的字段名称进行匹配。 必要时应用类型转换后填充匹配字段。 有关数据绑定（和验证）的更多信息，请参阅 Validation.。 有关自定义数据绑定的更多信息，请参阅Binder Methods.。
 
 数据绑定可能会导致错误。 默认情况下会引发WebExchangeBindException，但要在控制器方法中检查此类错误，请立即在@ModelAttribute旁边添加BindingResult参数，如下所示：
-```
+```java
 @PostMapping("/owners/{ownerId}/pets/{petId}/edit")
 public String processSubmit(@ModelAttribute("pet") Pet pet, BindingResult result) {
     if (result.hasErrors()) {
@@ -670,8 +707,9 @@ public String processSubmit(@ModelAttribute("pet") Pet pet, BindingResult result
     // ...
 }
 ```
+
 通过添加javax.validation.Valid注解或Spring的@Validated注解（另请参阅Bean验证和Spring验证），可以在数据绑定后自动应用验证。 例如：
-```
+```java
 @PostMapping("/owners/{ownerId}/pets/{petId}/edit")
 public String processSubmit(@Valid @ModelAttribute("pet") Pet pet, BindingResult result) {
     if (result.hasErrors()) {
@@ -680,8 +718,10 @@ public String processSubmit(@Valid @ModelAttribute("pet") Pet pet, BindingResult
     // ...
 }
 ```
+
+
 与Spring MVC不同，Spring WebFlux支持模型中的反应类型，例如， Mono<Account>或io.reactivex.Single <Account>。 @ModelAttribute参数可以使用或不使用反应式类型的包装来声明，并且如果需要，它将被相应地解析为实际值。 但是请注意，为了使用BindingResult参数，您必须在它之前声明@ModelAttribute参数，并且不使用反应型包装器，如前所示。 或者可以通过反应型来处理任何错误：
-```
+```java
 @PostMapping("/owners/{ownerId}/pets/{petId}/edit")
 public Mono<String> processSubmit(@Valid @ModelAttribute("pet") Mono<Pet> petMono) {
     return petMono
@@ -693,20 +733,24 @@ public Mono<String> processSubmit(@Valid @ModelAttribute("pet") Mono<Pet> petMon
         });
 }
 ```
+
 注意，@ModelAttribute是可选的，默认情况下所有的非简单类型（BeanUtils#isSimpleProperty判断）并且不能被其他类型转换，就会认为使用@ModelAttribute注解。
 
 #### @SessionAttributes
 
 @SessionAttributes用于在请求之间的WebSession中存储模型属性。 它是一个声明特定控制器使用的会话属性的类型级注释。 这通常会列出模型属性的名称或模型属性的类型，这些属性应该透明地存储在会话中供随后的访问请求使用。例如：
-```
+```java
 @Controller
 @SessionAttributes("pet")
 public class EditPetForm {
     // ...
 }
 ```
+
+
+
 在第一个请求中，当名称为“pet”的模型属性添加到模型中时，它会自动保存在WebSession中。 它会一直存在，直到另一个控制器方法使用SessionStatus方法参数清除为止：
-```
+```java
 @Controller
 @SessionAttributes("pet")
 public class EditPetForm {
@@ -724,15 +768,17 @@ public class EditPetForm {
     }
 }
 ```
+
 #### @SessionAttribute
 
 如果您需要访问全局（即在控制器之外）管理的预先存在的会话属性，并且可能存在也可能不存在，请在方法参数上使用@SessionAttribute注释：
-```
+```java
 @GetMapping("/")
 public String handle(@SessionAttribute User user) {
     // ...
 }
 ```
+
 对于需要添加或删除会话属性的用例，考虑将WebSession注入控制器方法。
 
 为了将会话中的模型属性临时存储为控制器工作流的一部分，请考虑使用@SessionAttributes中所述的SessionAttributes。
@@ -748,7 +794,7 @@ public String handle(@RequestAttribute Client client) {
 #### Multipart
 
 正如Multipart data中所解释的，ServerWebExchange提供对Multipart 内容的访问。 在控制器中处理文件上传表单（例如从浏览器）的最佳方式是通过数据绑定到对象：
-```
+```java
 class MyForm {
 
     private String name;
@@ -769,6 +815,7 @@ public class FileUploadController {
 
 }
 ```
+
 Multipart 请求也可以在非RESTful服务场景中从非浏览器客户端提交。 例如，JSON形式伴随一个文件：
 ```
 POST /someUrl
@@ -789,22 +836,25 @@ Content-Transfer-Encoding: 8bit
 ... File Data ...
 ```
 你可以使用@RequestPart获取到从JSON格式反序列化（这是在HTTP Message Codecs配置的）回来的"meta-data"部分：
-```
+```java
 @PostMapping("/")
 public String handle(@RequestPart("meta-data") MetaData metadata,
         @RequestPart("file-data") FilePart file) {
     // ...
 }
 ```
+
 要以流方式顺序访问Multipart 数据，请使用带Flux <Part>的@RequestBody。 例如：
-```
+```java
 @PostMapping("/")
 public String handle(@RequestBody Flux<Part> parts) {
     // ...
 }
 ```
+
+
 @RequestPart可以与javax.validation.Valid或Spring的@Validated注释组合使用，这会应用标准Bean验证。 默认情况下，验证错误会导致变为400（BAD_REQUEST）响应的WebExchangeBindException。 或者，验证错误可以通过Errors或BindingResult参数在控制器内本地处理：
-```
+```java
 @PostMapping("/")
 public String handle(@Valid @RequestPart("meta-data") MetaData metadata,
         BindingResult result) {
@@ -812,32 +862,36 @@ public String handle(@Valid @RequestPart("meta-data") MetaData metadata,
 }
 ```
 
+
 #### @RequestBody
 使用@RequestBody注释让请求体通过HttpMessageReader读取并反序列化成Object。 下面是一个带有@RequestBody参数的例子：
-```
+```java
 @PostMapping("/accounts")
 public void handle(@RequestBody Account account) {
     // ...
 }
 ```
+
 与Spring MVC不同，在WebFlux中，@RequestBody方法参数支持反应类型和完全非阻塞式读取和（客户端到服务器）流：
-```
+```java
 @PostMapping("/accounts")
 public void handle(@RequestBody Mono<Account> account) {
     // ...
 }
 ```
+
 您可以使用WebFlux Config的HTTP message codecs选项来配置或自定义消息读取器。
 @RequestBody可以与javax.validation.Valid或Spring的@Validated注解组合使用，这会应用标准Bean验证。 默认情况下，验证错误会导致变为400（BAD_REQUEST）响应的WebExchangeBindException。 或者，验证错误可以通过Errors或BindingResult参数在控制器内本地处理：
-```
+```java
 @PostMapping("/accounts")
 public void handle(@Valid @RequestBody Account account, BindingResult result) {
     // ...
 }
 ```
+
 #### HttpEntity
 HttpEntity或多或少与使用@RequestBody相同，但包含了请求标头和主体的容器对象。 下面是一个例子：
-```
+```java
 @PostMapping("/accounts")
 public void handle(HttpEntity<Account> entity) {
     // ...
@@ -846,13 +900,15 @@ public void handle(HttpEntity<Account> entity) {
 
 #### @ResponseBody
 在一个方法上使用@ResponseBody注解来通过HttpMessageWriter将返回序列化到响应主体。 例如：
-```
+```java
 @GetMapping("/accounts/{id}")
 @ResponseBody
 public Account handle() {
     // ...
 }
 ```
+
+
 @ResponseBody也支持类级别，在这种情况下，它被所有控制器方法继承。 这是@RestController的作用，它只不过是用@Controller和@ResponseBody标记的组合注解。
 
 @ResponseBody支持反应类型，这意味着您可以返回Reactor或RxJava类型，并将它们生成的异步值呈现给响应。 有关JSON渲染的更多详细信息，请参阅[webflux-codecs-jackson-json]。
@@ -863,7 +919,7 @@ public Account handle() {
 
 #### ResponseEntity
 ResponseEntity或多或少与使用@ResponseBody相同，但是指定了请求标头和主体的容器对象。 下面是一个例子：
-```
+```java
 @PostMapping("/something")
 public ResponseEntity<String> handle() {
     // ...
@@ -871,10 +927,11 @@ public ResponseEntity<String> handle() {
     return new ResponseEntity.created(location).build();
 }
 ```
+
 #### Jackson JSON
 Jackson 序列化视图
 Spring WebFlux为Jackson 的序列化视图提供了内置的支持，它允许只呈现部分对象属性。 要将其与@ResponseBody或ResponseEntity控制器方法一起使用，请使用Jackson的@JsonView注释来激活序列化视图类：
-```
+```java
 @RestController
 public class UserController {
 
@@ -912,6 +969,7 @@ public class User {
     }
 }
 ```
+
 *@JsonView的值允许指定一个视图类的数组，但每个控制器方法只能使用一个注解。 如果您需要激活多个视图，请使用复合视图。*
 
 ### Model Methods
@@ -922,25 +980,27 @@ public class User {
 @ModelAttribute方法具有灵活的方法签名。 它们支持许多与@RequestMapping方法相同的参数，除了@ModelAttribute本身或任何与请求主体相关的东西。
 
 下面是一个@ModelAttribute的示例：
-```
+```java
 @ModelAttribute
 public void populateModel(@RequestParam String number, Model model) {
     model.addAttribute(accountRepository.findAccount(number));
     // add more ...
 }
 ```
+
 仅仅添加一个属性:
-```
+```java
 @ModelAttribute
 public Account addAccount(@RequestParam String number) {
     return accountRepository.findAccount(number);
 }
 ```
 
+
 *如果未明确指定名称，则会根据Javadoc for Conventions中所述的对象类型选择默认名称。 您始终可以使用重载的addAttribute方法或通过@ModelAttribute (name)上的name属性来指定显式名称。*
 
 与Spring MVC不同，Spring WebFlux明确支持模型中的反应类型，例如Mono<Account>或io.reactivex.Single <Account>。 这样的异步模型属性可以在@RequestMapping调用时被透明地解析（并且模型更新）为它们的实际值，@ModelAttribute参数在没有被包装的情况下声明，例如：
-```
+```java
 @ModelAttribute
 public void addAccount(@RequestParam String number) {
     Mono<Account> accountMono = accountRepository.findAccount(number);
@@ -952,10 +1012,11 @@ public String handle(@ModelAttribute Account account, BindingResult errors) {
     // ...
 }
 ```
+
 此外，任何具有反应型包装的模型属性都会在视图呈现之前解析为其实际值（并更新模型）。
 
 @ModelAttribute也可以用作@RequestMapping方法的方法级别注释，在这种情况下，@RequestMapping方法的返回值被解释为模型属性。 这通常不是必需的，因为它是HTML控制器中的默认行为，除非返回值是一个字符串。 @ModelAttribute也可以帮助模型属性名称：
-```
+```java
 @GetMapping("/accounts/{id}")
 @ModelAttribute("myAccount")
 public Account handle() {
@@ -964,13 +1025,14 @@ public Account handle() {
 }
 ```
 
+
 ### Binder Methods
 @Controller或@ControllerAdvice类中的@InitBinder方法可用于自定义基于字符串的请求值（例如请求参数，路径变量，请求头，cookie等）的方法参数的类型转换。 在将请求参数绑定到@ModelAttribute参数上时，也有类型转换。
 
 @InitBinder方法可以注册特定控制器的java.bean.PropertyEditor或Spring Converter和Formatter组件。 另外，WebFlux Java配置可用于在全局共享的FormattingConversionService中注册Converter和Formatter类型。
 
 @InitBinder方法支持许多与@RequestMapping方法相同的参数，除了@ModelAttribute参数。 通常注册时，声明WebDataBinder参数，返回void。 下面是一个例子：
-```
+```java
 @Controller
 public class FormController {
 
@@ -984,8 +1046,9 @@ public class FormController {
     // ...
 }
 ```
+
 或者，当通过共享的FormattingConversionService使用基于Formatter的设置时，您可以使用相同的方法注册控制器特定的Formatter：
-```
+```java
 @Controller
 public class FormController {
 
@@ -1006,7 +1069,7 @@ public class FormController {
 启动时，基础设施类检测在@ControllerAdvice的Spring bean中声明@RequestMapping和@ExceptionHandler的方法，然后在运行时应用它们。来自@ControllerAdvice的全局@ExceptionHandler方法在来自@Controller的之后执行。相比之下，全局@ModelAttribute和@InitBinder方法在本地之前执行。
 
 默认情况下，@ControllerAdvice方法适用于每个请求，即所有控制器，但您可以通过注释上的属性限定需要执行的控制器：
-```
+```java
 // Target all Controllers annotated with @RestController
 @ControllerAdvice(annotations = RestController.class)
 public class ExampleAdvice1 {}
@@ -1019,6 +1082,7 @@ public class ExampleAdvice2 {}
 @ControllerAdvice(assignableTypes = {ControllerInterface.class, AbstractController.class})
 public class ExampleAdvice3 {}
 ```
+
 请记住，上述选择器在运行时执行，如果广泛使用，可能会对性能产生负面影响。 有关更多详细信息，请参阅@ControllerAdvice Javadoc。
 
 
@@ -1027,7 +1091,7 @@ public class ExampleAdvice3 {}
 
 ### UriComponents
 UriComponents与java.net.URI差不多。 但是它带有一个专用的UriComponentsBuilder并支持URI模板变量：
-```
+```java
 String uriTemplate = "http://example.com/hotels/{hotel}";
 
 UriComponents uriComponents = UriComponentsBuilder.fromUriString(uriTemplate)  ①
@@ -1036,13 +1100,14 @@ UriComponents uriComponents = UriComponentsBuilder.fromUriString(uriTemplate)  �
 
 URI uri = uriComponents.expand("Westin", "123").encode().toUri();  ④
 ```
+
 ① 一个创建 URI的静态工厂方法
 ②添加或者替换参数
 ③构建
 ④扩展变量、编码并且获取URI
 
 上面的写法可以用链式或者快捷方式：
-```
+```java
 String uriTemplate = "http://example.com/hotels/{hotel}";
 
 URI uri = UriComponentsBuilder.fromUriString(uriTemplate)
@@ -1058,15 +1123,16 @@ UriComponentsBuilder是UriBuilder的一个实现。 UriBuilderFactory和UriBuild
 RestTemplate和WebClient都可以使用UriBuilderFactory进行配置，以便自定义URI模板创建URI的方式。 默认实现在内部依赖于UriComponentsBuilder，并提供了配置通用基本URI，替代编码模式策略等的选项。
 
 配置RestTemplate的一个例子：
-```
+```java
 String baseUrl = "http://example.com";
 DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(baseUrl);
 
 RestTemplate restTemplate = new RestTemplate();
 restTemplate.setUriTemplateHandler(factory);
 ```
+
 配置WebClient的一个例子：
-```
+```java
 String baseUrl = "http://example.com";
 DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(baseUrl);
 
@@ -1079,10 +1145,11 @@ WebClient client = WebClient.builder().baseUrl(baseUrl).build();
 // Or use create shortcut...
 WebClient client = WebClient.create(baseUrl);
 ```
+
 您也可以直接使用DefaultUriBuilderFactory，就像您使用UriComponentsBuilder一样。 主要区别在于，DefaultUriBuilderFactory是有状态的，可以重新用于准备许多URL，共享例如基本URL等通用配置，而UriComponentsBuilder是无状态的并且是单URI。
 
 使用DefaultUriBuilderFactory的一个例子：
-```
+```java
 String baseUrl = "http://example.com";
 DefaultUriBuilderFactory uriBuilderFactory = new DefaultUriBuilderFactory(baseUrl);
 
@@ -1104,13 +1171,14 @@ URI uri = uriBuilderFactory.uriString("/hotels/{hotel}")
 上述默认编码策略不会对所有具有保留含义的字符进行编码，而只会对给定URI组件中的非法字符进行编码。 如果这不符合您的期望，您可以使用下面介绍的替代策略。
 
 当使用DefaultUriBuilderFactory - 嵌入WebClient，RestTemplate或直接使用时，可以切换到另一种编码策略，如下所示：
-```
+```java
 String baseUrl = "http://example.com";
 DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory(baseUrl)
 factory.setEncodingMode(EncodingMode.VALUES_ONLY);
 
 // ...
 ```
+
 这种编码策略在扩展之前对每个URI变量值应用UriUtils.encode（String，Charset），有效编码所有非US-ASCII字符以及在URI中具有保留含义的所有字符，这确保扩展的URI变量 对URI的结构或含义没有任何影响。
 
 
@@ -1123,35 +1191,41 @@ Spring WebFlux包含一个轻量级的函数式编程模型，其中函数用于
 ServerRequest和ServerResponse是不可变的接口，它提供了JDK-8友好的访问底层HTTP消息的能力，以及反应式非阻塞背压。 该请求将主体暴露为Reactor Flux或Mono类型; 响应接受任何Reactive Streams Publisher作为正文。 Reactive Libraries解释了这一点的合理性。
 
 ServerRequest允许访问各种HTTP请求元素：方法，URI，查询参数和头部信息（通过一个单独的ServerRequest.Headers接口，通过body方法提供对主体的访问，例如，如何提取请求主体 成Mono<String>：
-```
+```java
 Mono<String> string = request.bodyToMono(String.class);
 ```
+
 这里是如何响应体转换到Flux中，其中Person是一个可以从报文内容反序列化的类（即，使用Jackson反序列化JSON，使用JAXB反序列化XML）:
-```
+```java
 Flux<Person> people = request.bodyToFlux(Person.class);
 ```
+
 上面使用的bodyToMono和bodyToFlux实际上是使用通用ServerRequest.body（BodyExtractor）方法的便捷方法。 BodyExtractor是一个功能性策略接口，可让您编写自己的提取逻辑，但可在BodyExtractor工具类中找到常见的BodyExtractor实例。 所以，上面的例子也可以写成如下：
-```
+```java
 Mono<String> string = request.body(BodyExtractors.toMono(String.class);
 Flux<Person> people = request.body(BodyExtractors.toFlux(Person.class);
 ```
+
 同样，ServerResponse提供对HTTP响应的访问。 由于它是不可变的，因此您可以使用构建器创建一个ServerResponse。 构建器允许您设置响应状态，添加响应头并提供正文。 例如，这是如何创建200 OK状态，JSON内容类型和正文的响应：
-```
+```java
 Mono<Person> person = ...
 ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(person);
 ```
+
 这里是如何建立一个201 CREATED状态，一个“Location”头和空白主体的响应：
-```
+```java
 URI location = ...
 ServerResponse.created(location).build();
 ```
+
 把它们放在一起可以让我们创建一个HandlerFunction。 例如，下面是一个简单的“Hello World”处理程序lambda的示例，它返回一个具有200状态和基于String的主体的响应：
-```
+```java
 HandlerFunction<ServerResponse> helloWorld =
   request -> ServerResponse.ok().body(fromObject("Hello World"));
 ```
+
 正如我们上面所做的那样，编写处理函数的lambda函数是很方便的，但是在处理多个函数时可能缺乏可读性并且变得不易维护。 因此，建议将相关处理函数分组到处理程序或控制器类中。 例如，下面是一个反应式Person存储库的类：
-```
+```java
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
@@ -1183,6 +1257,7 @@ public class PersonHandler {
     }
 }
 ```
+
 ① listPeople 把存储的所有Person用JSON格式返回。
 ②createPerson 把请求体中的Person存储起来。注意，PersonRepository.savePerson(Person)返回Mono<void>:这是一个空的Mono并在从请求体中读取完数据保存后发出完成信号。所以我们收到完成信号（即保存完成后）后使用build(Publisher<Void>)方法去发送一个响应。
 ③ getPerson 返回使用路径变量id标识出的单个Person。如果我们从存储中成功获取就创建一个JSON响应，如果没有找到就使用switchIfEmpty(Mono<T>)返回一个404未发现响应。
@@ -1191,15 +1266,16 @@ public class PersonHandler {
 传入的请求通过一个RouterFunction被路由到处理函数，这是一个接受ServerRequest的函数，并返回一个Mono <HandlerFunction>。 如果请求匹配特定的路由，则返回一个处理函数，否则返回一个空的Mono。 RouterFunction与基于注解的编程模型中的@RequestMapping注释具有相似的用途。
 
 通常，您不要自己编写路由器功能，而是使用RouterFunctions.route（RequestPredicate，HandlerFunction）使用请求断言和处理函数创建一个路由器函数。 如果断言适用，则将请求路由到给定的处理函数; 否则不执行路由，返回404 Not Found响应。 虽然您可以编写自己的RequestPredicate，但您不必：RequestPredicates工具类提供常用的断言，例如基于路径，HTTP方法，内容类型等的匹配。使用路由，我们可以路由到我们的“Hello World” 处理函数：
-```
+```java
 RouterFunction<ServerResponse> helloWorldRoute =
     RouterFunctions.route(RequestPredicates.path("/hello-world"),
     request -> Response.ok().body(fromObject("Hello World")));
 ```
+
 两个路由器功能可以组成一个新的路由器功能，该路由器可以路由到任一处理器：如果第一个路由的断言不匹配，则第二个路由器的断言将被执行判断。 组合路由器功能按顺序进行匹配，因此将特定功能放在通用功能之前。 您可以通过调用RouterFunction.and（RouterFunction）或通过调用RouterFunction.andRoute（RequestPredicate，HandlerFunction）来组合两个路由器功能，这是RouterFunction.and（）与RouterFunctions.route（）的简便用法。
 
 鉴于我们上面展示的PersonHandler，我们现在可以定义路由到相应处理器的路由器功能。 我们使用method-references 来关联处理函器：
-```
+```java
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 
@@ -1211,6 +1287,7 @@ RouterFunction<ServerResponse> personRoute =
         .andRoute(GET("/person").and(accept(APPLICATION_JSON)), handler::listPeople)
         .andRoute(POST("/person").and(contentType(APPLICATION_JSON)), handler::createPerson);
 ```
+
 除了路由器功能外，您还可以通过调用RequestPredicate.and（RequestPredicate）或RequestPredicate.or（RequestPredicate）来组合请求断言。 这些按预期工作：and表示两个断言都要匹配; or表示其中一个匹配就可以。 RequestPredicates中的大多数断言都是组合。 例如，RequestPredicates.GET（String）是RequestPredicates.method（HttpMethod）和RequestPredicates.path（String）的组合。
 
 ### Running a server
@@ -1233,7 +1310,7 @@ RouterFunction<ServerResponse> personRoute =
 上述组件允许功能端点符合DispatcherHandler请求处理生命周期，并且还可能与注释的控制器并行运行（如果声明的话）。 这也是功能端点启用Spring Boot WebFlux的启动器。
 
 下面是用java代码配置WebFlux的一个示例（查看DispatcherHandler怎么启动）：
-```
+```java
 @Configuration
 @EnableWebFlux
 public class WebConfig implements WebFluxConfigurer {
@@ -1270,7 +1347,7 @@ public class WebConfig implements WebFluxConfigurer {
 ### HandlerFilterFunction
 
 由路由器功能映射的路由可以通过调用RouterFunction.filter（HandlerFilterFunction）进行过滤，其中HandlerFilterFunction本质上是一个接受ServerRequest和HandlerFunction的函数，并返回ServerResponse。 HandlerFunction参数表示链中的下一个元素：这通常是路由到的HandlerFunction，但如果应用多个过滤器，则也可以是另一个FilterFunction。 使用注解，可以使用@ControllerAdvice和/或ServletFilter实现类似的功能。 让我们在我们的路由中添加一个简单的安全过滤器，假设我们有一个可以确定是否允许特定路径的SecurityManager：
-```
+```java
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 SecurityManager securityManager = ...
@@ -1286,6 +1363,7 @@ RouterFunction<ServerResponse> filteredRoute =
         }
   });
 ```
+
 你可以在这个例子中看到调用next.handle（ServerRequest）是可选的：我们只允许在允许访问时执行处理函数。
 
 ## CORS
@@ -1316,7 +1394,7 @@ HandlerMapping级别的全局CORS配置可以与更细粒度的处理器级CORS�
 
 ### @CrossOrigin
 @CrossOrigin 注解可以在控制器方法上开启跨域：
-```
+```java
 @RestController
 @RequestMapping("/account")
 public class AccountController {
@@ -1333,6 +1411,7 @@ public class AccountController {
     }
 }
 ```
+
 默认情况下@CrossOrigin允许:
 - 所有域
 - 所有请求头
@@ -1343,7 +1422,7 @@ allowedCredentials默认情况下未启用，因为它建立了一个信任级�
   默认30分钟
 
 @CrossOrigin 也可以在类级别使用，并且对所有的方法都生效:
-```
+```java
 @CrossOrigin(origins = "http://domain2.com", maxAge = 3600)
 @RestController
 @RequestMapping("/account")
@@ -1362,7 +1441,7 @@ public class AccountController {
 ```
 
 @CrossOrigin 也可以同时在类级别和方法上使用:
-```
+```java
 @CrossOrigin(maxAge = 3600)
 @RestController
 @RequestMapping("/account")
@@ -1394,7 +1473,7 @@ allowedCredentials默认情况下未启用，因为它建立了一个信任级�
   默认30分钟
 
 要在WebFlux Java配置中启用CORS，请使用CorsRegistry回调：
-```
+```java
 @Configuration
 @EnableWebFlux
 public class WebConfig implements WebFluxConfigurer {
@@ -1418,7 +1497,7 @@ public class WebConfig implements WebFluxConfigurer {
 您可以通过内置的CorsWebFilter来应用CORS支持，这非常适合功能端点。
 
 要配置过滤器，您可以声明一个CorsWebFilter bean并将CorsConfigurationSource传递给其构造函数：
-```
+```java
 @Bean
 CorsWebFilter corsFilter() {
 
