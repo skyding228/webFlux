@@ -5,7 +5,7 @@ var SPLIT_LINE = '\r\n';
 var REGEX_HEADER = /^ *(#+)(.+) *$/;
 
 //set markdown file headers with number and add toc at the beginning
-function toc(markdown,rootLevel=0,maxDepth=10) {
+function toc(markdown,rootLevel=0,maxDepth=3) {
     var filename = markdown.substring(0,markdown.lastIndexOf('.'));
     var data = fs.readFileSync(markdown).toString();
     var lines = data.split(SPLIT_LINE);
@@ -51,4 +51,6 @@ function toc(markdown,rootLevel=0,maxDepth=10) {
 function text2anchor(text){
     return text.replace(/ +/g,'-').replace(/[/\\?？@：:\\(\\)\\]+/g,'').toLowerCase();
 }
-console.log(toc('WebFlux.md',0,3).join(SPLIT_LINE));
+console.log(toc('WebFlux.md',0).join(SPLIT_LINE));
+console.log(toc('webClient.md',1).join(SPLIT_LINE));
+console.log(toc('webSockets.md',2).join(SPLIT_LINE));
