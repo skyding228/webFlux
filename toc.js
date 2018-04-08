@@ -59,7 +59,7 @@ function toc(markdown,rootLevel=0,maxDepth=3) {
  * @param text
  */
 function text2anchor(text){
-    return text.replace(/ +/g,'-').replace(/\.+/g,'-').replace(/[/\?？@：:\(\)\\]+/g,'').toLowerCase();
+    return text.replace(/ +/g,'-').replace(/[/\.\?？@：:\(\)\\]+/g,'').toLowerCase();
 }
 //
 function getNumber(text){
