@@ -25,7 +25,7 @@ function toc(markdown,rootLevel=0) {
                 }
             }
             var number = LEVEL_INDEX.slice(0, level+1).join('.');
-            TOC.push(number + ' ' + text);
+            TOC.push(header[1] + ' '+ number + ' ' + text);
         }
     });
     return TOC;
