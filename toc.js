@@ -14,7 +14,7 @@ function toc(markdown,rootLevel=0) {
         var header = REGEX_HEADER.exec(line);
         if (header) {
             var level = header[1].length - 1; //get string which only contains #
-            var text = header[2];
+            var text = header[2].trim();
             if (!LEVEL_INDEX[level]) {
                 LEVEL_INDEX[level] = 1;
             } else {
@@ -25,7 +25,13 @@ function toc(markdown,rootLevel=0) {
                 }
             }
             var number = LEVEL_INDEX.slice(0, level+1).join('.');
-            TOC.push(header[1] + ' '+ number + ' ' + text);
+            var link = [];
+            while (level -- >0){
+                link.push('    '); //use 4 spaces to represent one level
+            }
+            link.push('*['+number+' '+text+']');
+            link.push('('+markdown+'#'+text.replace(/ +/g,'-')+')');
+            TOC.push(link.join(''));
         }
     });
     return TOC;
